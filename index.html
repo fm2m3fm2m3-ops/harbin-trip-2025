@@ -2,7 +2,7 @@
 <html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Harbin & Arxan 2025</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&family=Noto+Sans+TC:wght@300;400;500;700&display=swap" rel="stylesheet">
     <style>
@@ -12,11 +12,12 @@
             --glass-border: rgba(255, 255, 255, 0.9);
             --primary-dark: #2C3E50;
             --secondary-grey: #64748B;
-            --accent-blue: #5D8AA8; /* 北歐峽灣藍 */
-            --accent-warm: #D4A373; /* 暖木色 (美食/提醒) */
-            --shadow-soft: 0 8px 30px rgba(0,0,0,0.04);
+            --accent-blue: #5D8AA8;
+            --accent-warm: #D4A373;
             --shadow-card: 0 4px 12px rgba(93, 138, 168, 0.08);
             --radius-box: 24px;
+            --header-height: 80px;  /* 定義 Header 高度 */
+            --nav-height: 85px;     /* 定義 Nav 高度 */
         }
 
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
@@ -28,40 +29,46 @@
             margin: 0;
             padding: 0;
             height: 100vh;
-            overflow: hidden; /* 防止整體捲動，讓中間區域捲動 */
+            overflow: hidden;
         }
 
-        /* --- UI Components --- */
-        
-        /* 頂部導航 */
+        /* 頂部 Header */
         .app-header {
-            padding: 20px 24px;
-            background: rgba(255,255,255,0.8);
+            height: var(--header-height);
+            padding: 0 24px;
+            background: rgba(255,255,255,0.9);
             backdrop-filter: blur(10px);
             -webkit-backdrop-filter: blur(10px);
             position: fixed;
             top: 0; left: 0; right: 0;
-            z-index: 100;
+            z-index: 500; /* 層級最高 */
             display: flex;
             justify-content: space-between;
             align-items: center;
             border-bottom: 1px solid rgba(255,255,255,0.5);
+            padding-top: env(safe-area-inset-top); /* 避開瀏海 */
         }
-        .header-title { font-size: 18px; font-weight: 700; letter-spacing: 0.5px; color: var(--primary-dark); }
+        .header-title { font-size: 18px; font-weight: 700; color: var(--primary-dark); }
         .header-status { font-size: 10px; color: var(--accent-blue); background: rgba(93, 138, 168, 0.1); padding: 4px 10px; border-radius: 20px; font-weight: 600; }
 
-        /* 主內容區 (可滑動) */
+        /* 主內容區 */
         .main-content {
             height: 100%;
-            padding: 90px 20px 100px 20px; /* 避開頭尾 */
+            /* 關鍵修正：上下 Padding 拉大，避開固定欄位 */
+            padding-top: calc(var(--header-height) + 20px); 
+            padding-bottom: calc(var(--nav-height) + 40px);
+            padding-left: 20px;
+            padding-right: 20px;
             overflow-y: auto;
             scroll-behavior: smooth;
+            -webkit-overflow-scrolling: touch; /* iOS 滑動慣性 */
         }
-
-        /* 隱藏 Scrollbar 但保持滑動 */
         .main-content::-webkit-scrollbar { display: none; }
 
-        /* 日期導航 (Day Pagination) */
+        /* 墊高底部用的隱形區塊 (確保最後一個元素不被擋住) */
+        .bottom-spacer { height: 60px; width: 100%; }
+
+        /* 日期切換區 */
         .day-pagination {
             display: flex;
             justify-content: center;
@@ -70,113 +77,53 @@
             gap: 20px;
         }
         .btn-page {
-            background: white;
-            border: none;
-            width: 40px; height: 40px;
-            border-radius: 50%;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.05);
-            color: var(--primary-dark);
-            font-size: 18px;
-            cursor: pointer;
-            transition: all 0.2s;
-            display: flex; align-items: center; justify-content: center;
+            background: white; border: none; width: 40px; height: 40px; border-radius: 50%;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.05); color: var(--primary-dark); font-size: 18px;
+            cursor: pointer; display: flex; align-items: center; justify-content: center; z-index: 10;
         }
-        .btn-page:active { transform: scale(0.95); background: var(--accent-blue); color: white; }
-        .current-date-display {
-            text-align: center;
-        }
-        .date-big { font-size: 20px; font-weight: 800; color: var(--primary-dark); }
-        .date-loc { font-size: 13px; color: var(--secondary-grey); margin-top: 2px; }
 
         /* 天氣膠囊 */
         .weather-pill {
             background: linear-gradient(135deg, #89f7fe 0%, #66a6ff 100%);
-            color: white;
-            padding: 12px 20px;
-            border-radius: 16px;
-            margin-bottom: 30px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            box-shadow: 0 8px 20px rgba(102, 166, 255, 0.25);
-            font-weight: 500;
+            color: white; padding: 12px 20px; border-radius: 16px; margin-bottom: 30px;
+            display: flex; align-items: center; justify-content: space-between;
+            box-shadow: 0 8px 20px rgba(102, 166, 255, 0.25); font-weight: 500;
         }
 
-        /* 卡片設計 (Glassmorphism) */
+        /* 卡片樣式 */
         .event-card {
-            background: var(--glass-bg);
-            border: 1px solid var(--glass-border);
-            border-radius: var(--radius-box);
-            padding: 20px;
-            margin-bottom: 20px;
-            box-shadow: var(--shadow-card);
-            position: relative;
-            transition: transform 0.2s;
+            background: var(--glass-bg); border: 1px solid var(--glass-border);
+            border-radius: var(--radius-box); padding: 20px; margin-bottom: 20px;
+            box-shadow: var(--shadow-card); position: relative;
         }
-        .event-card:active { transform: scale(0.99); }
-        
-        .tag-line {
-            width: 40px; height: 4px; border-radius: 4px; margin-bottom: 12px;
-        }
+        .tag-line { width: 40px; height: 4px; border-radius: 4px; margin-bottom: 12px; }
         .type-transport .tag-line { background: var(--accent-blue); }
         .type-view .tag-line { background: #52B788; }
         .type-food .tag-line { background: var(--accent-warm); }
         .type-stay .tag-line { background: #9D84B7; }
-
+        
         .card-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px; }
         .card-title { font-size: 17px; font-weight: 700; margin: 0; color: var(--primary-dark); }
-        .card-time { 
-            font-size: 12px; 
-            font-weight: 600; 
-            color: var(--secondary-grey); 
-            background: #F1F5F9; 
-            padding: 4px 10px; 
-            border-radius: 12px; 
-        }
-
+        .card-time { font-size: 12px; font-weight: 600; color: var(--secondary-grey); background: #F1F5F9; padding: 4px 10px; border-radius: 12px; }
         .card-desc { font-size: 14px; color: #4B5563; line-height: 1.6; margin-bottom: 15px; }
 
-        /* 導遊說故事 (Story Section) */
+        /* 導遊故事區 */
         .story-box {
-            background: #FDFBF7;
-            border-left: 3px solid var(--accent-warm);
-            padding: 12px 15px;
-            border-radius: 0 12px 12px 0;
-            margin: 10px -20px 15px -20px; /* 拉滿寬度 */
-            padding-left: 20px;
-            position: relative;
+            background: #FDFBF7; border-left: 3px solid var(--accent-warm);
+            padding: 12px 15px 12px 20px; border-radius: 0 12px 12px 0;
+            margin: 10px -20px 15px -20px;
         }
-        .story-label { font-size: 11px; font-weight: 700; color: var(--accent-warm); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 4px; display: block;}
+        .story-label { font-size: 11px; font-weight: 700; color: var(--accent-warm); display: block; margin-bottom: 4px;}
         .story-text { font-size: 13px; color: #5D5D5D; font-style: italic; line-height: 1.5; }
 
-        /* 按鈕群組 */
+        /* 按鈕群 */
         .action-row { display: flex; gap: 10px; margin-top: 15px; }
-        .btn-map {
-            flex: 1;
-            padding: 10px;
-            border-radius: 12px;
-            background: #EFF6FF;
-            color: #2563EB;
-            font-size: 13px;
-            font-weight: 600;
-            text-align: center;
-            text-decoration: none;
-            display: flex; align-items: center; justify-content: center; gap: 6px;
-        }
-        .btn-check {
-            width: 40px;
-            border-radius: 12px;
-            background: white;
-            border: 1px solid #E5E7EB;
-            display: flex; align-items: center; justify-content: center;
-            font-size: 18px;
-            cursor: pointer;
-            color: #ccc;
-        }
+        .btn-map { flex: 1; padding: 10px; border-radius: 12px; background: #EFF6FF; color: #2563EB; font-size: 13px; font-weight: 600; text-decoration: none; display: flex; align-items: center; justify-content: center; gap: 6px; }
+        .btn-check { width: 40px; border-radius: 12px; background: white; border: 1px solid #E5E7EB; display: flex; align-items: center; justify-content: center; font-size: 18px; color: #ccc; cursor: pointer;}
         .btn-check.checked { color: #EF4444; border-color: #FECACA; background: #FEF2F2; }
 
-        /* 記帳與資訊頁面優化 */
-        .info-card { background: white; border-radius: 16px; padding: 16px; margin-bottom: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.03); display: flex; justify-content: space-between; align-items: center;}
+        /* 資訊卡片 */
+        .info-card { background: white; border-radius: 16px; padding: 16px; margin-bottom: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.03); }
         .info-main { font-weight: 600; color: var(--primary-dark); }
         .info-sub { font-size: 12px; color: var(--secondary-grey); margin-top: 4px; }
         .flight-badge { background: var(--primary-dark); color: white; padding: 2px 6px; border-radius: 4px; font-size: 11px; margin-right: 6px; }
@@ -184,37 +131,31 @@
         /* 底部導航 */
         .bottom-nav {
             position: fixed;
-            bottom: 20px;
+            bottom: 20px; /* 預設距離 */
             left: 20px; right: 20px;
             height: 65px;
             background: rgba(255,255,255,0.95);
             backdrop-filter: blur(12px);
             border-radius: 20px;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+            box-shadow: 0 10px 40px rgba(0,0,0,0.15);
             display: flex;
             justify-content: space-around;
             align-items: center;
-            z-index: 200;
+            z-index: 500;
+            padding-bottom: env(safe-area-inset-bottom); /* iPhone Home Bar 支援 */
         }
-        .nav-item {
-            text-align: center;
-            color: #94A3B8;
-            font-size: 24px;
-            padding: 10px 20px;
-            border-radius: 16px;
-            transition: all 0.3s;
-        }
-        .nav-item.active {
-            color: var(--accent-blue);
-            transform: translateY(-5px);
-            background: rgba(93, 138, 168, 0.1);
-        }
+        .nav-item { text-align: center; color: #94A3B8; font-size: 24px; padding: 10px 20px; border-radius: 16px; transition: all 0.3s; }
+        .nav-item.active { color: var(--accent-blue); transform: translateY(-5px); background: rgba(93, 138, 168, 0.1); }
         .nav-label { font-size: 9px; display: block; font-weight: 600; margin-top: 2px; }
 
-        /* 隱藏/顯示控制 */
+        /* 分頁切換動畫 */
         .page-section { display: none; animation: fadeIn 0.4s ease; }
         .page-section.active { display: block; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        
+        /* 左右滑動提示 */
+        .swipe-hint { text-align: center; font-size: 10px; color: #aaa; margin-top: -15px; margin-bottom: 15px; animation: pulse 2s infinite; }
+        @keyframes pulse { 0% { opacity: 0.5; } 50% { opacity: 1; } 100% { opacity: 0.5; } }
 
     </style>
 </head>
@@ -225,79 +166,68 @@
     <div class="header-status" id="connection-status">● 連線中</div>
 </header>
 
-<div class="main-content">
+<div class="main-content" id="main-container">
 
     <div id="view-itinerary" class="page-section active">
         <div class="day-pagination">
             <button class="btn-page" onclick="changeDay(-1)">❮</button>
-            <div class="current-date-display">
-                <div class="date-big" id="display-date">Dec 24</div>
-                <div class="date-loc" id="display-loc">Shanghai</div>
+            <div style="text-align: center; min-width: 120px;">
+                <div style="font-size: 20px; font-weight: 800; color: var(--primary-dark);" id="display-date">Dec 24</div>
+                <div style="font-size: 13px; color: var(--secondary-grey);" id="display-loc">Shanghai</div>
             </div>
             <button class="btn-page" onclick="changeDay(1)">❯</button>
         </div>
+        
+        <div class="swipe-hint">← 左右滑動切換日子 →</div>
 
         <div class="weather-pill">
             <span>❄️ 當地天氣預報</span>
             <span id="display-weather" style="font-weight:700">-°C</span>
         </div>
 
-        <div id="day-events-list">
-            </div>
+        <div id="day-events-list"></div>
         
-        <div style="height: 20px;"></div>
+        <div class="bottom-spacer"></div>
     </div>
 
     <div id="view-info" class="page-section">
-        <h2 style="margin:10px 0 20px 0; font-size:20px;">航班與交通</h2>
+        <h2 style="margin:0 0 20px 0; font-size:20px;">航班與交通</h2>
         <div class="info-card">
-            <div>
-                <div class="info-main"><span class="flight-badge">CA196</span>台北 TPE ➝ 上海 PVG</div>
-                <div class="info-sub">12/24 15:05 - 17:10 | 中國國際航空</div>
-            </div>
+            <div class="info-main"><span class="flight-badge">CA196</span>台北 TPE ➝ 上海 PVG</div>
+            <div class="info-sub">12/24 15:05 - 17:10 | 中國國際航空</div>
         </div>
         <div class="info-card">
-            <div>
-                <div class="info-main"><span class="flight-badge">CA8301</span>上海 PVG ➝ 哈爾濱 HRB</div>
-                <div class="info-sub">12/25 07:00 - 10:00 | 預計航班</div>
-            </div>
+            <div class="info-main"><span class="flight-badge">CA8301</span>上海 PVG ➝ 哈爾濱 HRB</div>
+            <div class="info-sub">12/25 07:00 - 10:00 | 預計航班</div>
         </div>
         <div class="info-card">
-            <div>
-                <div class="info-main"><span class="flight-badge">CA8514</span>哈爾濱 HRB ➝ 杭州 HGH</div>
-                <div class="info-sub">12/29 19:20 - 22:40 | 中國國際航空</div>
-            </div>
+            <div class="info-main"><span class="flight-badge">CA8514</span>哈爾濱 HRB ➝ 杭州 HGH</div>
+            <div class="info-sub">12/29 19:20 - 22:40 | 中國國際航空</div>
         </div>
         <div class="info-card">
-            <div>
-                <div class="info-main"><span class="flight-badge">CA149</span>杭州 HGH ➝ 台北 TPE</div>
-                <div class="info-sub">12/30 09:30 - 11:25 | 中國國際航空</div>
-            </div>
+            <div class="info-main"><span class="flight-badge">CA149</span>杭州 HGH ➝ 台北 TPE</div>
+            <div class="info-sub">12/30 09:30 - 11:25 | 中國國際航空</div>
         </div>
 
         <h2 style="margin:30px 0 20px 0; font-size:20px;">火車資訊</h2>
         <div class="info-card">
-            <div>
-                <div class="info-main">🚅 G1238 高鐵</div>
-                <div class="info-sub">12/25 11:57 哈爾濱西 - 14:31 瀋陽北</div>
-            </div>
+            <div class="info-main">🚅 G1238 高鐵</div>
+            <div class="info-sub">12/25 11:57 哈爾濱西 - 14:31 瀋陽北</div>
         </div>
         <div class="info-card">
-            <div>
-                <div class="info-main">🚂 K7565 臥鋪</div>
-                <div class="info-sub">12/25 21:09 瀋陽 - 12/26 09:17 阿爾山</div>
-            </div>
+            <div class="info-main">🚂 K7565 臥鋪</div>
+            <div class="info-sub">12/25 21:09 瀋陽 - 12/26 09:17 阿爾山</div>
         </div>
-         <div class="info-card">
-            <div>
-                <div class="info-main">🚂 K7090 臥鋪</div>
-                <div class="info-sub">12/27 20:50 滿洲里 - 12/28 09:05 哈爾濱</div>
-            </div>
+        <div class="info-card">
+            <div class="info-main">🚂 K7090 臥鋪</div>
+            <div class="info-sub">12/27 20:50 滿洲里 - 12/28 09:05 哈爾濱</div>
         </div>
+        
+        <div class="bottom-spacer"></div>
     </div>
 
     <div id="view-budget" class="page-section">
-        <h2 style="margin:10px 0 20px 0; font-size:20px;">旅費記帳</h2>
+        <h2 style="margin:0 0 20px 0; font-size:20px;">旅費記帳</h2>
         <div class="weather-pill" style="background:linear-gradient(135deg, #FF9A9E 0%, #FECFEF 100%); color:#333;">
             <span>目前總支出</span>
             <span style="font-size:20px;">¥<span id="total-amount">0</span></span>
@@ -311,6 +241,7 @@
         </div>
 
         <div id="expense-list" style="margin-top:20px;"></div>
+        <div class="bottom-spacer"></div>
     </div>
 
     <div id="view-chat" class="page-section">
@@ -321,35 +252,24 @@
                 <button id="btn-send-msg" style="padding:8px 15px; background:var(--accent-blue); color:white; border:none; border-radius:8px;">發送</button>
             </div>
         </div>
-        <div id="chat-list" style="margin-top:20px; padding-bottom:50px;"></div>
+        <div id="chat-list" style="margin-top:20px;"></div>
+        <div class="bottom-spacer"></div>
     </div>
 
 </div>
 
 <nav class="bottom-nav">
-    <div class="nav-item active" onclick="switchView('itinerary', this)">
-        <i class="icon">🗺️</i>
-        <span class="nav-label">行程</span>
-    </div>
-    <div class="nav-item" onclick="switchView('info', this)">
-        <i class="icon">🎫</i>
-        <span class="nav-label">資訊</span>
-    </div>
-    <div class="nav-item" onclick="switchView('budget', this)">
-        <i class="icon">💰</i>
-        <span class="nav-label">記帳</span>
-    </div>
-    <div class="nav-item" onclick="switchView('chat', this)">
-        <i class="icon">💬</i>
-        <span class="nav-label">留言</span>
-    </div>
+    <div class="nav-item active" onclick="switchView('itinerary', this)"><i class="icon">🗺️</i><span class="nav-label">行程</span></div>
+    <div class="nav-item" onclick="switchView('info', this)"><i class="icon">🎫</i><span class="nav-label">資訊</span></div>
+    <div class="nav-item" onclick="switchView('budget', this)"><i class="icon">💰</i><span class="nav-label">記帳</span></div>
+    <div class="nav-item" onclick="switchView('chat', this)"><i class="icon">💬</i><span class="nav-label">留言</span></div>
 </nav>
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
     import { getFirestore, collection, addDoc, onSnapshot, query, orderBy, deleteDoc, doc, Timestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-    // ⚠️ 你的 Firebase Config (維持不變)
+    // ⚠️ Firebase Config
     const firebaseConfig = {
       apiKey: "AIzaSyCTN4SxbLj5j_pVL9AlL899Ockn_cUryq4",
       authDomain: "harbin-trip-2025.firebaseapp.com",
@@ -363,11 +283,10 @@
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
     
-    // 連線狀態
     document.getElementById('connection-status').innerText = "● 已連線";
     document.getElementById('connection-status').style.color = "#27AE60";
 
-    // --- Firebase 記帳 ---
+    // --- Firebase Logic (記帳 & 留言) ---
     const expenseListEl = document.getElementById('expense-list');
     const totalAmountEl = document.getElementById('total-amount');
     
@@ -379,21 +298,13 @@
             total += Number(data.amount);
             html += `
                 <div style="display:flex; justify-content:space-between; padding:12px; border-bottom:1px solid #eee; align-items:center;">
-                    <div>
-                        <div style="font-weight:600; color:#333;">${data.name}</div>
-                        <div style="font-size:12px; color:#888;">${data.who} • ¥${data.amount}</div>
-                    </div>
+                    <div><div style="font-weight:600; color:#333;">${data.name}</div><div style="font-size:12px; color:#888;">${data.who} • ¥${data.amount}</div></div>
                     <span class="delete-btn" data-id="${docSnap.id}" style="color:#ff6b6b; font-size:12px; cursor:pointer; padding:5px;">✕</span>
                 </div>`;
         });
         expenseListEl.innerHTML = html;
         totalAmountEl.innerText = total;
-
-        document.querySelectorAll('.delete-btn').forEach(btn => {
-            btn.addEventListener('click', async (e) => {
-                if(confirm('刪除此筆支出？')) await deleteDoc(doc(db, "expenses", e.target.dataset.id));
-            });
-        });
+        document.querySelectorAll('.delete-btn').forEach(btn => btn.addEventListener('click', async (e) => { if(confirm('刪除？')) await deleteDoc(doc(db, "expenses", e.target.dataset.id)); }));
     });
 
     document.getElementById('btn-add-expense').addEventListener('click', async () => {
@@ -402,213 +313,115 @@
         const amount = document.getElementById('expense-amount').value;
         if(who && name && amount) {
             await addDoc(collection(db, "expenses"), { who, name, amount: Number(amount), timestamp: Timestamp.now() });
-            document.getElementById('expense-name').value = '';
-            document.getElementById('expense-amount').value = '';
+            document.getElementById('expense-name').value = ''; document.getElementById('expense-amount').value = '';
         }
     });
 
-    // --- Firebase 留言 ---
     const chatListEl = document.getElementById('chat-list');
     onSnapshot(query(collection(db, "messages"), orderBy("timestamp", "asc")), (snapshot) => {
         let html = '';
         snapshot.forEach((docSnap) => {
             const data = docSnap.data();
             const date = data.timestamp ? new Date(data.timestamp.toDate()) : new Date();
-            html += `
-                <div style="background:white; padding:10px; border-radius:12px; margin-bottom:8px; box-shadow:0 2px 5px rgba(0,0,0,0.03);">
-                    <div style="font-size:11px; color:#5D8AA8; font-weight:bold;">${data.user} <span style="font-weight:normal; color:#ccc; margin-left:5px;">${date.getHours()}:${String(date.getMinutes()).padStart(2,'0')}</span></div>
-                    <div style="font-size:14px; color:#333; margin-top:2px;">${data.msg}</div>
-                </div>`;
+            html += `<div style="background:white; padding:10px; border-radius:12px; margin-bottom:8px; box-shadow:0 2px 5px rgba(0,0,0,0.03);"><div style="font-size:11px; color:#5D8AA8; font-weight:bold;">${data.user} <span style="font-weight:normal; color:#ccc;">${date.getHours()}:${String(date.getMinutes()).padStart(2,'0')}</span></div><div style="font-size:14px; color:#333; margin-top:2px;">${data.msg}</div></div>`;
         });
         chatListEl.innerHTML = html;
-        window.scrollTo(0, document.body.scrollHeight);
     });
 
     document.getElementById('btn-send-msg').addEventListener('click', async () => {
         const user = document.getElementById('chat-user').value || '匿名';
         const msg = document.getElementById('chat-msg').value;
-        if(msg) {
-            await addDoc(collection(db, "messages"), { user, msg, timestamp: Timestamp.now() });
-            document.getElementById('chat-msg').value = '';
-        }
+        if(msg) { await addDoc(collection(db, "messages"), { user, msg, timestamp: Timestamp.now() }); document.getElementById('chat-msg').value = ''; }
     });
 </script>
 
 <script>
-    // --- V2.0 互動行程資料結構 (含故事、航班、高德地圖) ---
+    // --- 行程資料 & 互動邏輯 ---
     const itineraryData = [
         {
             date: "12/24", location: "台北 ✈️ 上海", weather: "☁️ 5~10°C",
             events: [
-                { 
-                    type: "transport", title: "CA196 飛往上海", time: "15:05 TPE - 17:10 PVG", 
-                    desc: "抵達上海浦東機場，準備開始旅程。", nav: "上海浦東國際機場" 
-                },
-                { 
-                    type: "view", title: "外灘 & 南京步行街", time: "晚上", 
-                    desc: "魔都經典夜景。萬國建築群是上海租界時期的歷史見證。", 
-                    story: "導遊說：這裡曾經是英國租界，建築風格涵蓋了巴洛克、哥德式等52幢大樓，被稱為『萬國建築博覽群』。晚上開燈後，金色光芒倒映在黃浦江最美。",
-                    nav: "上海外灘" 
-                },
-                { 
-                    type: "food", title: "晚餐：小楊生煎 & 蟹黃麵", time: "晚餐推薦", 
-                    desc: "上海必吃小吃，皮薄底脆，湯汁爆炸。", 
-                    story: "美食攻略：吃生煎包要『先開窗、後喝湯』，不然會被熱湯燙到嘴喔！推薦搭配一碗牛肉粉絲湯。",
-                    nav: "小楊生煎" 
-                },
-                {
-                    type: "food", title: "Speak Low (酒吧)", time: "20:00",
-                    desc: "Asia Top 50 Bar，隱藏在書店機關後的酒吧。",
-                    story: "小趣聞：這家店門口賣酒具和書，你需要找到書櫃上的機關才能進入真正的酒吧區域，非常有特務感！",
-                    nav: "Speak Low"
-                }
+                { type: "transport", title: "CA196 飛往上海", time: "15:05 TPE - 17:10 PVG", desc: "抵達上海浦東機場。", nav: "上海浦東國際機場" },
+                { type: "view", title: "外灘 & 南京步行街", time: "晚上", desc: "魔都經典夜景。萬國建築群。", story: "導遊說：這裡曾經是英國租界，晚上的金色燈光倒映在黃浦江最美。", nav: "上海外灘" },
+                { type: "food", title: "晚餐：小楊生煎 & 蟹黃麵", time: "晚餐", desc: "必吃小吃，皮薄底脆。", story: "美食攻略：吃生煎包要『先開窗、後喝湯』小心燙！", nav: "小楊生煎" },
+                { type: "food", title: "Speak Low (酒吧)", time: "20:00", desc: "Asia Top 50 Bar，隱藏式酒吧。", story: "小趣聞：這家店要找到書櫃上的機關才能進入喔！", nav: "Speak Low" }
             ]
         },
         {
             date: "12/25", location: "上海 ✈️ 哈爾濱 🚄 瀋陽", weather: "❄️ -15°C",
             events: [
                 { type: "transport", title: "CA8301 飛往哈爾濱", time: "07:00 PVG - 10:00 HRB", desc: "早班機前往冰城。", nav: "哈爾濱太平國際機場" },
-                { type: "transport", title: "G1238 高鐵往瀋陽", time: "11:57 - 14:31", desc: "快速移動到瀋陽，準備晚上轉車。", nav: "哈爾濱西站" },
-                { 
-                    type: "view", title: "沐里沐外 (洗浴體驗)", time: "下午", 
-                    desc: "在東北，洗澡是一種文化。包含搓澡、桑拿、吃水果自助。", 
-                    story: "文化體驗：東北人招待最好的朋友就是『請你去洗澡』。記得體驗一下『奶搓』，皮膚會變超級滑！",
-                    nav: "瀋陽沐里沐外" 
-                },
+                { type: "transport", title: "G1238 高鐵往瀋陽", time: "11:57 - 14:31", desc: "快速移動到瀋陽。", nav: "哈爾濱西站" },
+                { type: "view", title: "沐里沐外 (洗浴體驗)", time: "下午", desc: "包含搓澡、桑拿、吃水果自助。", story: "文化體驗：東北人招待朋友最高規格就是『請你去洗澡』！", nav: "瀋陽沐里沐外" },
                 { type: "stay", title: "K7565 臥鋪火車", time: "21:09 出發", desc: "前往阿爾山，睡一覺就到雪國。", nav: "瀋陽站" }
             ]
         },
         {
             date: "12/26", location: "阿爾山 (雪國)", weather: "❄️ -30°C",
             events: [
-                { 
-                    type: "view", title: "阿爾山國家森林公園", time: "全天", 
-                    desc: "駝峰嶺天池、石塘林。中國最小的城市，卻有最美的雪景。", 
-                    story: "地理小知識：這裡位於大興安嶺西南麓，『阿爾山』其實是蒙古語『熱的聖水』的意思，雖然現在冷得要死，但地下全是溫泉喔！",
-                    nav: "阿爾山國家森林公園" 
-                },
-                { 
-                    type: "view", title: "不凍河 (嚴冬奇觀)", time: "下午", 
-                    desc: "即使零下40度也不結冰的河流，牛群會在河裡吃草。", 
-                    story: "為什麼不結冰？因為河段下方有豐富的地熱資源活動，與周圍白雪形成強烈對比，運氣好還能看到『霧凇』。",
-                    nav: "阿爾山不凍河" 
-                }
+                { type: "view", title: "阿爾山國家森林公園", time: "全天", desc: "駝峰嶺天池、石塘林。", story: "地理小知識：『阿爾山』是蒙古語『熱的聖水』的意思，地下全是溫泉！", nav: "阿爾山國家森林公園" },
+                { type: "view", title: "不凍河 (嚴冬奇觀)", time: "下午", desc: "即使零下40度也不結冰。", story: "因為有豐富地熱，牛群會在這裡吃草，運氣好能看到霧凇。", nav: "阿爾山不凍河" }
             ]
         },
         {
             date: "12/27", location: "阿爾山 ➝ 滿洲里", weather: "❄️ -25°C",
             events: [
-                { 
-                    type: "view", title: "藍房子 & 呼倫湖", time: "上午", 
-                    desc: "網紅打卡點『藍房子』，在一片白雪中非常出片。", 
-                    story: "拍照Tips：穿紅色或鮮豔的衣服，在全白背景和藍房子前會非常好看！呼倫湖是內蒙古第一大湖，冬天會變成超大的『藍冰』冰場。",
-                    nav: "呼倫湖" 
-                },
-                { 
-                    type: "view", title: "滿洲里國門 & 套娃廣場", time: "傍晚", 
-                    desc: "中俄邊境城市，滿街都是俄羅斯建築。", 
-                    story: "城市故事：這裡一半是中國人，一半是俄羅斯人。晚上的滿洲里開燈後金碧輝煌，被稱為『東亞之窗』。",
-                    nav: "滿洲里套娃廣場" 
-                },
-                { 
-                    type: "food", title: "盧布里西餐廳", time: "晚餐", 
-                    desc: "正宗俄式西餐。紅菜湯、罐燜牛肉、大肉串。", 
-                    story: "必吃推薦：他們的『奶酪麵包』非常香，配上酸甜的紅菜湯剛剛好。餐廳服務員很多都是俄羅斯帥哥美女喔。",
-                    nav: "盧布里西餐廳" 
-                },
+                { type: "view", title: "藍房子 & 呼倫湖", time: "上午", desc: "網紅打卡點。", story: "拍照Tips：穿紅色衣服在雪地藍房子前超級出片！", nav: "呼倫湖" },
+                { type: "view", title: "滿洲里國門 & 套娃廣場", time: "傍晚", desc: "中俄邊境城市。", story: "這裡一半是俄羅斯人，夜景被稱為『東亞之窗』。", nav: "滿洲里套娃廣場" },
+                { type: "food", title: "盧布里西餐廳", time: "晚餐", desc: "正宗俄式西餐。", story: "必吃推薦：奶酪麵包、紅菜湯。服務員很多俄羅斯人喔。", nav: "盧布里西餐廳" },
                  { type: "transport", title: "K7090 臥鋪火車", time: "20:50 出發", desc: "睡回哈爾濱。", nav: "滿洲里站" }
             ]
         },
         {
-            date: "12/28", location: "哈爾濱 (東方莫斯科)", weather: "❄️ -20°C",
+            date: "12/28", location: "哈爾濱", weather: "❄️ -20°C",
             events: [
-                { 
-                    type: "view", title: "聖索菲亞大教堂", time: "上午", 
-                    desc: "拜占庭風格建築，哈爾濱的地標。", 
-                    story: "歷史課：這座教堂始建於1907年，最初是沙俄軍隊的隨軍教堂。它是目前中國保存最完美的拜占庭式建築，綠色的洋蔥頭穹頂非常經典。",
-                    nav: "聖索菲亞大教堂" 
-                },
-                { 
-                    type: "view", title: "冰雪大世界", time: "15:00 - 20:00", 
-                    desc: "世界最大的冰雪樂園，必玩極速大滑梯。", 
-                    story: "攻略：建議下午3點進場，可以同時看到白天的冰雕和晚上的燈光秀。如果不玩大滑梯（排隊很久），可以去跳『萬人雪地蹦迪』！",
-                    nav: "哈爾濱冰雪大世界" 
-                },
-                { 
-                    type: "food", title: "中央大街 & 馬迭爾冰棍", time: "散步", 
-                    desc: "踩在百年麵包石上，越冷越要吃冰棒。", 
-                    story: "冷知識：中央大街的石頭是花崗岩鋪的，據說當年一塊石頭價值一美元！馬迭爾冰棍沒有包裝紙，奶味超級濃郁。",
-                    nav: "中央大街" 
-                }
+                { type: "view", title: "聖索菲亞大教堂", time: "上午", desc: "拜占庭風格建築。", story: "這是中國保存最完美的拜占庭式建築，綠色洋蔥頭穹頂必拍。", nav: "聖索菲亞大教堂" },
+                { type: "view", title: "冰雪大世界", time: "15:00 - 20:00", desc: "世界最大冰雪樂園。", story: "攻略：下午3點進場看日夜景，必玩極速大滑梯！", nav: "哈爾濱冰雪大世界" },
+                { type: "food", title: "中央大街 & 馬迭爾冰棍", time: "散步", desc: "越冷越要吃冰棒。", story: "馬迭爾冰棍沒有包裝紙，奶味超級濃郁。", nav: "中央大街" }
             ]
         },
          {
             date: "12/29", location: "哈爾濱 ✈️ 杭州", weather: "☁️",
             events: [
-                { type: "view", title: "紅專街早市", time: "06:00", desc: "體驗東北最接地氣的早晨，物價感人。", story: "必吃：油炸糕、蛋堡、大碴粥。在這裡10塊錢能吃到撐！", nav: "紅專街早市" },
+                { type: "view", title: "紅專街早市", time: "06:00", desc: "體驗東北煙火氣。", story: "必吃：油炸糕、蛋堡、大碴粥。", nav: "紅專街早市" },
                 { type: "transport", title: "CA8514 飛往杭州", time: "19:20 HRB - 22:40 HGH", desc: "告別東北，飛往江南。", nav: "哈爾濱太平國際機場" }
             ]
         },
         {
             date: "12/30", location: "杭州 ✈️ 台北", weather: "☁️ 10°C",
             events: [
-                 { type: "transport", title: "CA149 回家", time: "09:30 HGH - 11:25 TPE", desc: "帶著滿滿的回憶回家囉！", nav: "杭州蕭山國際機場" }
+                 { type: "transport", title: "CA149 回家", time: "09:30 HGH - 11:25 TPE", desc: "帶著回憶回家囉！", nav: "杭州蕭山國際機場" }
             ]
         }
     ];
 
-    // --- 核心邏輯 ---
     let currentDayIndex = 0;
-
+    
+    // 渲染行程
     function renderDay() {
         const dayData = itineraryData[currentDayIndex];
         const container = document.getElementById('day-events-list');
-        
-        // 更新標題
         document.getElementById('display-date').innerText = dayData.date;
         document.getElementById('display-loc').innerText = dayData.location;
         document.getElementById('display-weather').innerText = dayData.weather;
         
-        // 生成卡片
         let html = '';
-        dayData.events.forEach((ev, idx) => {
-            // Story 區塊
-            let storyHtml = ev.story ? `
-                <div class="story-box">
-                    <span class="story-label">👩‍🏫 導遊悄悄話</span>
-                    <span class="story-text">${ev.story}</span>
-                </div>` : '';
-            
-            // 高德地圖連結 (Web Search Link)
+        dayData.events.forEach((ev) => {
+            let storyHtml = ev.story ? `<div class="story-box"><span class="story-label">👩‍🏫 導遊悄悄話</span><span class="story-text">${ev.story}</span></div>` : '';
             let amapLink = `https://uri.amap.com/search?keyword=${encodeURIComponent(ev.nav)}`;
-
             html += `
                 <div class="event-card type-${ev.type}">
                     <div class="tag-line"></div>
-                    <div class="card-header">
-                        <h3 class="card-title">${ev.title}</h3>
-                        <span class="card-time">${ev.time}</span>
-                    </div>
-                    <div class="card-desc">${ev.desc}</div>
-                    ${storyHtml}
-                    
-                    <div class="action-row">
-                        <a href="${amapLink}" target="_blank" class="btn-map">
-                            📍 高德導航
-                        </a>
-                        <button class="btn-check" onclick="toggleCheck(this)">♥</button>
-                    </div>
-                </div>
-            `;
+                    <div class="card-header"><h3 class="card-title">${ev.title}</h3><span class="card-time">${ev.time}</span></div>
+                    <div class="card-desc">${ev.desc}</div>${storyHtml}
+                    <div class="action-row"><a href="${amapLink}" target="_blank" class="btn-map">📍 高德導航</a><button class="btn-check" onclick="toggleCheck(this)">♥</button></div>
+                </div>`;
         });
         container.innerHTML = html;
-        
-        // 動畫重置
-        container.style.opacity = 0;
-        setTimeout(() => { container.style.opacity = 1; container.style.transition = 'opacity 0.3s'; }, 50);
+        container.style.opacity = 0; setTimeout(() => { container.style.opacity = 1; container.style.transition = 'opacity 0.3s'; }, 50);
+        document.getElementById('main-container').scrollTop = 0; // 切換天數時回到最上方
     }
 
-    // 切換日期
     window.changeDay = function(delta) {
         let newIndex = currentDayIndex + delta;
         if(newIndex >= 0 && newIndex < itineraryData.length) {
@@ -616,24 +429,34 @@
             renderDay();
         }
     }
-
-    // 愛心打卡
-    window.toggleCheck = function(btn) {
-        btn.classList.toggle('checked');
-    }
-
-    // 底部 Tab 切換
+    window.toggleCheck = function(btn) { btn.classList.toggle('checked'); }
     window.switchView = function(viewId, el) {
         document.querySelectorAll('.page-section').forEach(p => p.classList.remove('active'));
         document.getElementById('view-'+viewId).classList.add('active');
-        
         document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
         el.classList.add('active');
     }
 
-    // 初始化
-    renderDay();
+    // --- 左右滑動手勢 (Swipe Support) ---
+    let touchStartX = 0;
+    let touchEndX = 0;
+    const itineraryDiv = document.getElementById('view-itinerary');
 
+    itineraryDiv.addEventListener('touchstart', e => {
+        touchStartX = e.changedTouches[0].screenX;
+    }, {passive: true});
+
+    itineraryDiv.addEventListener('touchend', e => {
+        touchEndX = e.changedTouches[0].screenX;
+        handleSwipe();
+    }, {passive: true});
+
+    function handleSwipe() {
+        if (touchEndX < touchStartX - 50) { changeDay(1); } // Swipe Left (Next)
+        if (touchEndX > touchStartX + 50) { changeDay(-1); } // Swipe Right (Prev)
+    }
+
+    renderDay();
 </script>
 </body>
 </html>
