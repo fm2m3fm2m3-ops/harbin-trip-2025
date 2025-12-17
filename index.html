@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>哈爾濱極光之旅 (家庭版)</title>
+    <style>
+        :root {
+            --bg-color: #F7F9FB;
+            --card-bg: #FFFFFF;
+            --text-main: #2C3E50;
+            --text-sub: #7F8C8D;
+            --accent-blue: #5D8AA8;
+            --tag-food: #E67E22;
+            --tag-view: #27AE60;
+            --tag-transport: #2980B9;
+            --tag-stay: #8E44AD;
+            --nav-height: 70px;
+        }
+
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            margin: 0;
+            padding: 0 0 calc(var(--nav-height) + 20px) 0;
+        }
+
+        /* Header */
+        header {
+            background: var(--card-bg);
+            padding: 20px;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        h1 { margin: 0; font-size: 18px; font-weight: 700; letter-spacing: 1px; }
+        .subtitle { font-size: 11px; color: var(--text-sub); margin-top: 5px; }
+        .live-indicator { font-size: 10px; color: #27AE60; background: #e8f8f5; padding: 2px 6px; border-radius: 10px; border: 1px solid #27AE60;}
+
+        /* Container */
+        .container { padding: 15px; display: none; animation: fadeIn 0.3s ease; }
+        .container.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* Weather */
+        .weather-banner {
+            background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
+            border-radius: 12px;
+            padding: 15px;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            color: #444;
+        }
+        
+        /* Itinerary Cards */
+        .day-header { margin: 25px 0 10px 0; font-size: 18px; font-weight: 700; color: var(--accent-blue); }
+        .card {
+            background: var(--card-bg);
+            border-radius: 16px;
+            padding: 16px;
+            margin-bottom: 15px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.03);
+            position: relative;
+            overflow: hidden;
+        }
+        .card::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 4px; }
+        .card.type-view::before { background-color: var(--tag-view); }
+        .card.type-food::before { background-color: var(--tag-food); }
+        .card.type-transport::before { background-color: var(--tag-transport); }
+        .card.type-stay::before { background-color: var(--tag-stay); }
+        .card-title { font-size: 16px; font-weight: 600; margin: 0 0 5px 0; }
+        .card-time { font-size: 12px; color: var(--text-sub); background: #f0f2f5; padding: 2px 6px; border-radius: 4px; }
+        .card-desc { font-size: 14px; color: #555; line-height: 1.5; margin-bottom: 10px; margin-top: 8px;}
+        .guide-tip { background-color: #FEF9E7; border-radius: 8px; padding: 10px; font-size: 13px; color: #7D6608; margin-top: 10px; border-left: 3px solid #F1C40F; }
+        .btn-nav { display: inline-flex; align-items: center; justify-content: center; width: 100%; padding: 10px; background: #f8f9fa; color: var(--accent-blue); text-decoration: none; border-radius: 8px; font-size: 13px; font-weight: 600; margin-top: 10px; }
+
+        /* Info Section */
+        .info-block { background: #fff; padding: 15px; border-radius: 12px; margin-bottom: 10px; border: 1px solid #eee; }
+        .info-label { font-size: 12px; color: var(--text-sub); display: block; }
+        .info-value { font-size: 16px; font-weight: 500; }
+
+        /* Budget & Chat Styles */
+        .input-group { background: white; padding: 15px; border-radius: 12px; margin-bottom: 15px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
+        .form-input { width: 100%; padding: 12px; border: 1px solid #eee; border-radius: 8px; margin-bottom: 10px; font-size: 16px; }
+        .btn-action { width: 100%; padding: 12px; background: var(--accent-blue); color: white; border: none; border-radius: 8px; font-size: 16px; font-weight: bold; cursor: pointer; }
+        
+        /* Chat Specific */
+        .chat-list { list-style: none; padding: 0; margin-top: 20px; }
+        .chat-bubble { background: white; padding: 12px; border-radius: 12px; margin-bottom: 10px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); position: relative; }
+        .chat-user { font-size: 11px; color: var(--accent-blue); font-weight: bold; margin-bottom: 2px; display: block; }
+        .chat-text { font-size: 14px; color: #333; word-break: break-all; }
+        .chat-time { font-size: 10px; color: #ccc; float: right; }
+        .chat-bubble.mine { background: #EBF5FB; margin-left: 40px; }
+
+        /* Budget Specific */
+        .budget-item { display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid #eee; align-items: center; }
+        .budget-meta { font-size: 12px; color: #999; margin-left: 5px; }
+        .total-display { font-size: 24px; font-weight: bold; text-align: center; color: var(--tag-view); margin: 20px 0; background: white; padding: 15px; border-radius: 12px; }
+
+        /* Bottom Nav */
+        .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; height: var(--nav-height); background: rgba(255,255,255,0.98); border-top: 1px solid #eee; display: flex; justify-content: space-around; align-items: center; z-index: 200; padding-bottom: env(safe-area-inset-bottom); }
+        .nav-item { text-align: center; font-size: 10px; color: var(--text-sub); flex: 1; padding: 10px 0; cursor: pointer; }
+        .nav-item.active { color: var(--accent-blue); }
+        .nav-icon { font-size: 20px; display: block; margin-bottom: 4px; }
+        
+        .delete-btn { color: #ff6b6b; margin-left: 10px; cursor: pointer; padding: 5px; }
+    </style>
+</head>
+<body>
+
+<header>
+    <div>
+        <h1>China Trip 2025 ❄️</h1>
+        <div class="subtitle">上海 • 哈爾濱 • 內蒙古</div>
+    </div>
+    <span class="live-indicator">● 線上同步中</span>
+</header>
+
+<div id="tab-itinerary" class="container active">
+    <div id="itinerary-content"></div>
+</div>
+
+<div id="tab-info" class="container">
+    <h2>✈️ 航班資訊</h2>
+    <div class="info-block"><span class="info-label">12/24 去程</span><div class="info-value">TPE - SHA (15:05-17:10)</div></div>
+    <div class="info-block"><span class="info-label">12/25 轉機</span><div class="info-value">SHA - HRB (07:00-10:00)</div></div>
+    <div class="info-block"><span class="info-label">12/29 返程段1</span><div class="info-value">HRB - HGH (19:20-22:40)</div></div>
+    <div class="info-block"><span class="info-label">12/30 返程段2</span><div class="info-value">HGH - TPE (09:30-11:25)</div></div>
+    <h2>🏨 住宿 & 火車</h2>
+    <div class="info-block"><span class="info-label">12/25 火車</span><div class="info-value">G1238 (瀋陽) + K7565 (阿爾山)</div></div>
+    <div class="info-block"><span class="info-label">12/27 火車</span><div class="info-value">K7090 (滿洲里-哈爾濱)</div></div>
+</div>
+
+<div id="tab-budget" class="container">
+    <div class="total-display">總支出: ¥<span id="total-amount">0</span></div>
+    
+    <div class="input-group">
+        <h3>➕ 新增支出</h3>
+        <input type="text" id="expense-who" class="form-input" placeholder="誰付的? (例如: 爸爸)">
+        <input type="text" id="expense-name" class="form-input" placeholder="項目 (例如: 晚餐)">
+        <input type="number" id="expense-amount" class="form-input" placeholder="金額 (RMB)">
+        <button id="btn-add-expense" class="btn-action">記一筆</button>
+    </div>
+
+    <h3>📝 支出明細 (同步中)</h3>
+    <div id="expense-list"></div>
+</div>
+
+<div id="tab-chat" class="container">
+    <div class="input-group" style="position:sticky; top:80px; z-index:90;">
+        <input type="text" id="chat-user" class="form-input" placeholder="你的暱稱" value="旅人">
+        <textarea id="chat-msg" class="form-input" placeholder="留言給家人... (例如: 記得帶暖暖包)" rows="2"></textarea>
+        <button id="btn-send-msg" class="btn-action" style="background:var(--tag-transport)">發送留言</button>
+    </div>
+    <div id="chat-list" class="chat-list"></div>
+</div>
+
+<nav class="bottom-nav">
+    <div class="nav-item active" onclick="switchTab('itinerary', this)"><span class="nav-icon">🗺️</span>行程</div>
+    <div class="nav-item" onclick="switchTab('info', this)"><span class="nav-icon">🎫</span>資訊</div>
+    <div class="nav-item" onclick="switchTab('budget', this)"><span class="nav-icon">💰</span>記帳</div>
+    <div class="nav-item" onclick="switchTab('chat', this)"><span class="nav-icon">💬</span>留言</div>
+</nav>
+
+<script type="module">
+    // -----------------------------------------------------------
+    // ✅ 你的 Firebase 設定檔已經成功填入！
+    // -----------------------------------------------------------
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+    import { getFirestore, collection, addDoc, onSnapshot, query, orderBy, deleteDoc, doc, Timestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyCTN4SxbLj5j_pVL9AlL899Ockn_cUryq4",
+      authDomain: "harbin-trip-2025.firebaseapp.com",
+      projectId: "harbin-trip-2025",
+      storageBucket: "harbin-trip-2025.firebasestorage.app",
+      messagingSenderId: "23165691648",
+      appId: "1:23165691648:web:06ba8482fabf449b7735e5",
+      measurementId: "G-SJWGZFTV0F"
+    };
+
+    // 初始化 Firebase
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    // --- 1. 記帳功能 (Budget) ---
+    const expenseListEl = document.getElementById('expense-list');
+    const totalAmountEl = document.getElementById('total-amount');
+
+    // 監聽資料庫變化 (Realtime)
+    const qExpenses = query(collection(db, "expenses"), orderBy("timestamp", "desc"));
+    
+    onSnapshot(qExpenses, (snapshot) => {
+        let html = '';
+        let total = 0;
+        snapshot.forEach((docSnap) => {
+            const data = docSnap.data();
+            const id = docSnap.id;
+            total += Number(data.amount);
+            html += `
+                <div class="budget-item">
+                    <div>
+                        <span style="font-weight:bold">${data.name}</span>
+                        <span class="budget-meta">${data.who} • ¥${data.amount}</span>
+                    </div>
+                    <span class="delete-btn" data-id="${id}">✕</span>
+                </div>
+            `;
+        });
+        expenseListEl.innerHTML = html;
+        totalAmountEl.innerText = total;
+
+        // 綁定刪除按鈕
+        document.querySelectorAll('.delete-btn').forEach(btn => {
+            btn.addEventListener('click', async (e) => {
+                if(confirm('確定要刪除這筆支出嗎？')) {
+                    await deleteDoc(doc(db, "expenses", e.target.dataset.id));
+                }
+            });
+        });
+    });
+
+    // 新增支出
+    document.getElementById('btn-add-expense').addEventListener('click', async () => {
+        const who = document.getElementById('expense-who').value;
+        const name = document.getElementById('expense-name').value;
+        const amount = document.getElementById('expense-amount').value;
+
+        if(who && name && amount) {
+            try {
+                await addDoc(collection(db, "expenses"), {
+                    who: who,
+                    name: name,
+                    amount: Number(amount),
+                    timestamp: Timestamp.now()
+                });
+                // 清空輸入框
+                document.getElementById('expense-name').value = '';
+                document.getElementById('expense-amount').value = '';
+                alert("記帳成功！家人都看得到囉");
+            } catch (e) {
+                console.error("Error adding document: ", e);
+                alert("上傳失敗，請檢查網路或是 Firebase 權限");
+            }
+        } else {
+            alert("請填寫完整資訊喔");
+        }
+    });
+
+    // --- 2. 留言板功能 (Chat) ---
+    const chatListEl = document.getElementById('chat-list');
+    const qChat = query(collection(db, "messages"), orderBy("timestamp", "asc"));
+
+    onSnapshot(qChat, (snapshot) => {
+        let html = '';
+        const currentUser = document.getElementById('chat-user').value || '旅人';
+        
+        snapshot.forEach((docSnap) => {
+            const data = docSnap.data();
+            // 簡單判斷是否為自己發的
+            const isMine = data.user === currentUser ? 'mine' : '';
+            const date = data.timestamp ? new Date(data.timestamp.toDate()) : new Date();
+            const timeStr = `${date.getMonth()+1}/${date.getDate()} ${date.getHours()}:${String(date.getMinutes()).padStart(2, '0')}`;
+
+            html += `
+                <div class="chat-bubble ${isMine}">
+                    <span class="chat-user">${data.user}</span>
+                    <div class="chat-text">${data.msg}</div>
+                    <div class="chat-time">${timeStr}</div>
+                </div>
+            `;
+        });
+        chatListEl.innerHTML = html;
+        window.scrollTo(0, document.body.scrollHeight);
+    });
+
+    document.getElementById('btn-send-msg').addEventListener('click', async () => {
+        const user = document.getElementById('chat-user').value;
+        const msg = document.getElementById('chat-msg').value;
+
+        if(user && msg) {
+            await addDoc(collection(db, "messages"), {
+                user: user,
+                msg: msg,
+                timestamp: Timestamp.now()
+            });
+            document.getElementById('chat-msg').value = '';
+        }
+    });
+
+</script>
+
+<script>
+    // --- 靜態行程資料 (無須資料庫) ---
+    const itineraryData = [
+        {
+            date: "12/24 (三)", location: "上海", weather: "☁️ 5~10°C",
+            events: [
+                { type: "transport", title: "✈️ 台北 - 上海", time: "15:05", desc: "抵達上海", nav: "浦東國際機場" },
+                { type: "view", title: "外灘夜景", time: "晚上", desc: "萬國建築群漫步", nav: "外灘" },
+                { type: "food", title: "小楊生煎 & 蟹黃麵", time: "晚餐", desc: "必點：蟹粉生煎", nav: "小楊生煎" }
+            ]
+        },
+        {
+            date: "12/25 (四)", location: "哈爾濱 -> 瀋陽", weather: "❄️ -15°C",
+            events: [
+                { type: "transport", title: "✈️ 上海 - 哈爾濱", time: "07:00", desc: "飛往冰城", nav: "" },
+                { type: "transport", title: "🚄 哈爾濱 - 瀋陽", time: "11:57", desc: "G1238 高鐵", nav: "哈爾濱西站" },
+                { type: "view", title: "沐里沐外 洗浴", time: "傍晚", desc: "東北搓澡體驗", nav: "沐里沐外" },
+                { type: "stay", title: "🚂 K7565 臥鋪火車", time: "21:09", desc: "前往阿爾山", nav: "瀋陽站" }
+            ]
+        },
+        {
+            date: "12/26 (五)", location: "阿爾山", weather: "❄️ -30°C",
+            events: [
+                { type: "view", title: "阿爾山景區", time: "全天", desc: "駝峰嶺天池、杜鵑湖", nav: "阿爾山國家森林公園", tips: "極冷！手機要貼暖寶寶" },
+                { type: "stay", title: "阿爾山景區住宿", time: "晚上", desc: "景區內過夜", nav: "" }
+            ]
+        },
+        {
+            date: "12/27 (六)", location: "滿洲里", weather: "❄️ -25°C",
+            events: [
+                { type: "view", title: "不凍河 & 呼倫湖", time: "白天", desc: "看霧凇、藍冰", nav: "不凍河" },
+                { type: "view", title: "滿洲里國門", time: "傍晚", desc: "中俄邊境、套娃廣場", nav: "套娃廣場" },
+                { type: "food", title: "盧布里西餐廳", time: "晚餐", desc: "俄式紅菜湯、罐牛", nav: "盧布里西餐廳" },
+                { type: "transport", title: "🚂 K7090 臥鋪火車", time: "20:50", desc: "返回哈爾濱", nav: "滿洲里站" }
+            ]
+        },
+        {
+            date: "12/28 (日)", location: "哈爾濱", weather: "❄️ -20°C",
+            events: [
+                { type: "view", title: "索非亞教堂", time: "上午", desc: "拍雪景大片", nav: "聖索菲亞大教堂" },
+                { type: "view", title: "冰雪大世界", time: "15:00", desc: "必玩：極速大滑梯", nav: "冰雪大世界" },
+                { type: "food", title: "鐵鍋燉 / 燒烤", time: "晚餐", desc: "東北特色", nav: "老道外" }
+            ]
+        },
+        {
+            date: "12/29 (一)", location: "哈爾濱 -> 杭州", weather: "☁️",
+            events: [
+                { type: "view", title: "紅磚街早市", time: "早晨", desc: "吃油炸糕、喝大碴粥", nav: "紅專街早市" },
+                { type: "transport", title: "✈️ 哈爾濱 - 杭州", time: "19:20", desc: "飛往杭州", nav: "哈爾濱機場" }
+            ]
+        }
+    ];
+
+    // 渲染行程 (本地靜態)
+    const content = document.getElementById('itinerary-content');
+    itineraryData.forEach(day => {
+        let eventsHtml = '';
+        day.events.forEach(ev => {
+            const navLink = ev.nav ? `<a href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(ev.nav)}" target="_blank" class="btn-nav">📍 導航</a>` : '';
+            const tips = ev.tips ? `<div class="guide-tip">💡 ${ev.tips}</div>` : '';
+            eventsHtml += `
+                <div class="card type-${ev.type}">
+                    <h3 class="card-title">${ev.title}</h3>
+                    <span class="card-time">${ev.time}</span>
+                    <div class="card-desc">${ev.desc}</div>
+                    ${tips} ${navLink}
+                </div>`;
+        });
+        content.innerHTML += `
+            <div class="day-header">${day.date} <span style="font-size:14px;color:#666">${day.location}</span></div>
+            <div class="weather-banner"><div>${day.weather}</div></div>
+            ${eventsHtml}
+        `;
+    });
+
+    // Tab 切換
+    window.switchTab = function(id, el) {
+        document.querySelectorAll('.container').forEach(c => c.classList.remove('active'));
+        document.getElementById('tab-'+id).classList.add('active');
+        document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+        if(el) el.classList.add('active');
+    }
+</script>
+
+</body>
+</html>
